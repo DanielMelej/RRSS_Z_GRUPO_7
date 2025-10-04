@@ -5,9 +5,11 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 
-
-@Composable
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-fun windowSizeClassOf(activity: Activity): WindowSizeClass =
-    calculateWindowSizeClass(activity)
+@Composable
+fun obtenerWindowSizeClass(): WindowSizeClass {
+    val activity = LocalContext.current as Activity
+    return calculateWindowSizeClass(activity)
+}
