@@ -1,8 +1,11 @@
 package com.example.myapplication.ui.screen
 
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +19,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.R
+import com.example.myapplication.navigation.Screen
 import com.example.myapplication.viewmodel.MainViewModel
 
 @Composable
@@ -24,21 +28,29 @@ fun SignUpScreen(
     viewModel: MainViewModel
 ) {
     var username by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("")}
+    var confirmPassword by remember { mutableStateOf("") }
+
     var userError by remember { mutableStateOf(false) }
-    var passError by remember { mutableStateOf(false) }
+    var fullNameError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
+    var passError by remember { mutableStateOf(false) }
+    var confirmPassError by remember { mutableStateOf(false) }
+
     var passVisible by remember { mutableStateOf(false) }
+    var confirmPassVisible by remember { mutableStateOf(false) }
+
+    val scroll = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+            .padding(16.dp)
+            .verticalScroll(scroll),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Image(
             painter = painterResource(id = R.drawable.tomatito_registro),
             contentDescription = "Tomatito Registro",
@@ -48,9 +60,10 @@ fun SignUpScreen(
             contentScale = ContentScale.Fit
         )
 
-        Text("Registro de Usuario")
+        Spacer(Modifier.height(8.dp))
+        Text("Registro de usuario", style = MaterialTheme.typography.titleLarge)
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
 
         // Usuario
         OutlinedTextField(
@@ -70,27 +83,47 @@ fun SignUpScreen(
             )
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(12.dp))
 
-        // Usuario
+        // Nombre completo
         OutlinedTextField(
-            value = email,
+            value = fullName,
             onValueChange = {
-                email = it
-                if (emailError && it.isNotBlank()) emailError = false
+                fullName = it
+                if (fullNameError && it.isNotBlank()) fullNameError = false
             },
-            label = { Text("Correo electronico") },
+            label = { Text("Nombre completo") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            isError = emailError,
-            supportingText = { if (emailError) Text("Ingresa tu correo electronico") },
+            isError = fullNameError,
+            supportingText = { if (fullNameError) Text("Ingresa tu nombre completo") },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
             )
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+
+        // Correo
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                email = it
+                if (emailError && it.isNotBlank()) emailError = false
+            },
+            label = { Text("Correo electrónico") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = emailError,
+            supportingText = { if (emailError) Text("Ingresa un correo válido") },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Email
+            )
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         // Contraseña
         OutlinedTextField(
@@ -103,11 +136,36 @@ fun SignUpScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             isError = passError,
-            supportingText = { if (passError) Text("Ingresa tu contraseña") },
+            supportingText = { if (passError) Text("Mínimo 6 caracteres") },
             visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 val texto = if (passVisible) "Ocultar" else "Mostrar"
                 TextButton(onClick = { passVisible = !passVisible }) { Text(texto) }
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next,
+                keyboardType = KeyboardType.Password
+            )
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        // Confirmar contraseña
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = {
+                confirmPassword = it
+                if (confirmPassError && it.isNotBlank()) confirmPassError = false
+            },
+            label = { Text("Confirmar contraseña") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = confirmPassError,
+            supportingText = { if (confirmPassError) Text("Debe coincidir con la contraseña") },
+            visualTransformation = if (confirmPassVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val texto = if (confirmPassVisible) "Ocultar" else "Mostrar"
+                TextButton(onClick = { confirmPassVisible = !confirmPassVisible }) { Text(texto) }
             },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
@@ -119,20 +177,32 @@ fun SignUpScreen(
 
         Button(
             onClick = {
-                // Validación mínima
+                // Validaciones
                 userError = username.isBlank()
-                passError = password.isBlank()
+                fullNameError = fullName.isBlank()
+                emailError = email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                passError = password.length < 6
+                confirmPassError = confirmPassword != password
 
-                if (!userError && !passError) {
-                    // Aquí iría la autenticación real (Auth0/Firebase/local).
-                    // Por ahora podrías navegar a Home para probar:
+                if (!userError && !fullNameError && !emailError && !passError && !confirmPassError) {
+                    // Aquí podrías navegar o guardar los datos
                     // viewModel.navigateTo(Screen.Home)
                 }
             },
-            enabled = username.isNotBlank() && password.isNotBlank(),
+            enabled = username.isNotBlank() &&
+                    fullName.isNotBlank() &&
+                    email.isNotBlank() &&
+                    password.isNotBlank() &&
+                    confirmPassword.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Continuar")
+            Text("Crear cuenta")
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
+            Text("Volver al Inicio")
         }
     }
 }

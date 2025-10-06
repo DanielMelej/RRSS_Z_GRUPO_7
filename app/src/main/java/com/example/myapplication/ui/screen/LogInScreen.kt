@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.R
+import com.example.myapplication.navigation.Screen
 import com.example.myapplication.viewmodel.MainViewModel
 
 @Composable
@@ -38,7 +39,7 @@ fun LogInScreen(
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.tomatito),
+            painter = painterResource(id = R.drawable.tomatito_login),
             contentDescription = "Tomatito Inicio",
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,6 +112,11 @@ fun LogInScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Continuar")
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
+            Text("Volver al Incio")
         }
     }
 }
