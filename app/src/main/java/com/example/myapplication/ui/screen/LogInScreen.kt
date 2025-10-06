@@ -39,7 +39,7 @@ fun LogInScreen(
 
         Image(
             painter = painterResource(id = R.drawable.tomatito),
-            contentDescription = "Logo Inicial",
+            contentDescription = "Tomatito Inicio",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),

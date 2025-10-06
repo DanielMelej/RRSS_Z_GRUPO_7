@@ -95,6 +95,12 @@
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    Text(
+                        text = "Tomatado!",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Image(
                         painter = painterResource(id = R.drawable.tomatito_incio),
                         contentDescription = "Logo Inicial",
@@ -105,13 +111,15 @@
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Button(onClick = { viewModel.navigateTo(Screen.LogIn) }) {
                         Text("Log in")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Button(onClick = { viewModel.navigateTo(Screen.SignUp) }) {
-                    Text("Sign up")
+                        Text("Sign up")
                     }
                 }
             }
