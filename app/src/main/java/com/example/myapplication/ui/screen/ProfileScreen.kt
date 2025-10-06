@@ -64,7 +64,7 @@ fun ProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("¡Bienvenido al Perfil!")
+            Text("¡Bienvenido al Perfil 🍅!")
         }
     }
 }

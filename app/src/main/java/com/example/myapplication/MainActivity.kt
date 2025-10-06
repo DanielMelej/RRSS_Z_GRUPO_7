@@ -18,8 +18,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.navigation.NavigationEvent
 import com.example.myapplication.navigation.Screen
 import com.example.myapplication.ui.HomeScreen
+import com.example.myapplication.ui.screen.LogInScreen
 import com.example.myapplication.ui.screen.ProfileScreen
 import com.example.myapplication.ui.screen.SettingScreen
+import com.example.myapplication.ui.screen.SignUpScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewmodel.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -59,7 +61,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route, // 👈 ahora es "home"
+                        startDestination = Screen.Home.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(route = Screen.Home.route) {
@@ -68,6 +70,15 @@ class MainActivity : ComponentActivity() {
                         composable(route = Screen.Profile.route) {
                             ProfileScreen(navController = navController, viewModel = viewModel)
                         }
+
+                        composable(route = Screen.LogIn.route) {
+                            LogInScreen(navController = navController, viewModel = viewModel)
+                        }
+
+                        composable(route = Screen.SignUp.route) {
+                            SignUpScreen(navController = navController, viewModel = viewModel)
+                        }
+
                         composable(route = Screen.Setting.route) {
                             SettingScreen(navController = navController, viewModel = viewModel)
                         }

@@ -22,7 +22,7 @@ import com.example.myapplication.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreemMediana(){
+fun HomeScreenMediana(){
     Scaffold (
         topBar = {
             TopAppBar(title = { Text(text="Mi App Kotlin Mediana") })
@@ -45,7 +45,7 @@ fun HomeScreemMediana(){
             }
 
             Image(
-                painter = painterResource(id= R.drawable.logo_tomatito),
+                painter = painterResource(id= R.drawable.tomatito_incio),
                 contentDescription = "Logo App Mediana",
                 modifier = Modifier
                     .fillMaxWidth()

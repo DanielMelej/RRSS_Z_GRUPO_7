@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.screen
 
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +17,7 @@ import com.example.myapplication.navigation.Screen
 import com.example.myapplication.viewmodel.MainViewModel
 
 @Composable
-fun SettingScreen(
+fun SignUpScreen(
     navController: NavController,
     viewModel: MainViewModel
 ){
@@ -29,27 +28,15 @@ fun SettingScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Pantalla de Configuracion (Setting)")
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(text = "Reigstrar Usuario")
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                viewModel.navigateTo(Screen.Home)
-            }
-        ) {
-            Text("Volver al Inicio")
-        }
+        Text("Nombre de Usuario")
 
         Spacer(modifier = Modifier.height(16.dp))
+        Text("Contraseña")
 
-        Button(
-            onClick = {
-                viewModel.navigateTo(Screen.Profile)
-            }
-        ) {
-            Text("Ir a Perfil")
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
@@ -57,7 +44,7 @@ fun SettingScreen(
                 viewModel.navigateTo(Screen.LogIn)
             }
         ) {
-            Text("Ir a Tomates 🍅")
+            Text("Iniciar tomate 🍅")
         }
     }
 

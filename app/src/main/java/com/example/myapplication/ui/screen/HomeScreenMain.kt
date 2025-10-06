@@ -10,26 +10,26 @@ import com.example.myapplication.ui.utils.obtenerWindowSizeClass
 fun HomeScreenMain(){
     val windowSizeClass = obtenerWindowSizeClass()
     when (windowSizeClass.widthSizeClass){
-        WindowWidthSizeClass.Compact -> HomeScreemCompacta()
-        WindowWidthSizeClass.Medium -> HomeScreemMediana()
-        WindowWidthSizeClass.Expanded -> HomeScreemExtendida()
+        WindowWidthSizeClass.Compact -> HomeScreenCompacta()
+        WindowWidthSizeClass.Medium -> HomeScreenMediana()
+        WindowWidthSizeClass.Expanded -> HomeScreenExtendida()
     }
 }
 
 @Preview(name = "Compacta", widthDp = 360, heightDp = 800)
 @Composable
 fun PreviewCompacta(){
-    HomeScreemCompacta()
+    HomeScreenCompacta()
 }
 
 @Preview(name = "Mediana", widthDp = 600, heightDp = 800)
 @Composable
 fun PreviewMediana(){
-    HomeScreemMediana()
+    HomeScreenMediana()
 }
 
 @Preview(name = "Extendida", widthDp = 840, heightDp = 800)
 @Composable
 fun PreviewExtendida(){
-    HomeScreemExtendida()
+    HomeScreenExtendida()
 }
