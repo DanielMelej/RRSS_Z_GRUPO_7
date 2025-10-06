@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -24,11 +25,11 @@ fun LogInScreen(
     navController: NavController,
     viewModel: MainViewModel
 ) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var userError by remember { mutableStateOf(false) }
-    var passError by remember { mutableStateOf(false) }
-    var passVisible by remember { mutableStateOf(false) }
+    var username by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var userError by rememberSaveable { mutableStateOf(false) }
+    var passError by rememberSaveable { mutableStateOf(false) }
+    var passVisible by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -40,14 +41,15 @@ fun LogInScreen(
 
         Image(
             painter = painterResource(id = R.drawable.tomatito_login),
-            contentDescription = "Tomatito Inicio",
+            contentDescription = "Ilustración de inicio de sesión",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
             contentScale = ContentScale.Fit
         )
 
-        Text("Inicio de Sesión")
+        Spacer(Modifier.height(8.dp))
+        Text("Inicio de Sesión", style = MaterialTheme.typography.titleLarge)
 
         Spacer(Modifier.height(24.dp))
 
@@ -96,27 +98,28 @@ fun LogInScreen(
 
         Spacer(Modifier.height(16.dp))
 
+        // Botón de continuar
         Button(
             onClick = {
-                // Validación mínima
-                userError = username.isBlank()
+                // ✅ Validación mínima corregida
+                userError = username.trim().isBlank()
                 passError = password.isBlank()
 
                 if (!userError && !passError) {
-                    // Aquí iría la autenticación real (Auth0/Firebase/local).
-                    // Por ahora podrías navegar a Home para probar:
-                    // viewModel.navigateTo(Screen.Home)
+                    // Navegación de prueba: vuelve a Home
+                    viewModel.navigateTo(Screen.Home)
                 }
             },
-            enabled = username.isNotBlank() && password.isNotBlank(),
+            enabled = username.trim().isNotBlank() && password.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Continuar")
         }
 
         Spacer(Modifier.height(16.dp))
+
         Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
-            Text("Volver al Incio")
+            Text("Volver al Inicio")
         }
     }
 }

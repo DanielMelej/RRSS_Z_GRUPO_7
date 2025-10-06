@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -27,20 +28,20 @@ fun SignUpScreen(
     navController: NavController,
     viewModel: MainViewModel
 ) {
-    var username by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
+    var fullName by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-    var userError by remember { mutableStateOf(false) }
-    var fullNameError by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf(false) }
-    var passError by remember { mutableStateOf(false) }
-    var confirmPassError by remember { mutableStateOf(false) }
+    var userError by rememberSaveable { mutableStateOf(false) }
+    var fullNameError by rememberSaveable { mutableStateOf(false) }
+    var emailError by rememberSaveable { mutableStateOf(false) }
+    var passError by rememberSaveable { mutableStateOf(false) }
+    var confirmPassError by rememberSaveable { mutableStateOf(false) }
 
-    var passVisible by remember { mutableStateOf(false) }
-    var confirmPassVisible by remember { mutableStateOf(false) }
+    var passVisible by rememberSaveable { mutableStateOf(false) }
+    var confirmPassVisible by rememberSaveable { mutableStateOf(false) }
 
     val scroll = rememberScrollState()
 
@@ -53,7 +54,7 @@ fun SignUpScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.tomatito_registro),
-            contentDescription = "Tomatito Registro",
+            contentDescription = "Ilustración de registro con tomate", // ✅ Punto 2
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
@@ -177,21 +178,21 @@ fun SignUpScreen(
 
         Button(
             onClick = {
-                // Validaciones
-                userError = username.isBlank()
-                fullNameError = fullName.isBlank()
-                emailError = email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                // ✅ Validaciones con trim directo
+                userError = username.trim().isBlank()
+                fullNameError = fullName.trim().isBlank()
+                emailError = email.trim().isBlank() ||
+                        !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
                 passError = password.length < 6
                 confirmPassError = confirmPassword != password
 
                 if (!userError && !fullNameError && !emailError && !passError && !confirmPassError) {
-                    // Aquí podrías navegar o guardar los datos
-                    // viewModel.navigateTo(Screen.Home)
+                    viewModel.navigateTo(Screen.Home)
                 }
             },
-            enabled = username.isNotBlank() &&
-                    fullName.isNotBlank() &&
-                    email.isNotBlank() &&
+            enabled = username.trim().isNotBlank() &&
+                    fullName.trim().isNotBlank() &&
+                    email.trim().isNotBlank() &&
                     password.isNotBlank() &&
                     confirmPassword.isNotBlank(),
             modifier = Modifier.fillMaxWidth()
@@ -202,7 +203,7 @@ fun SignUpScreen(
         Spacer(Modifier.height(16.dp))
 
         Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
-            Text("Volver al Inicio")
+            Text("Volver al inicio")
         }
     }
 }
