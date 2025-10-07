@@ -54,7 +54,7 @@ fun SignUpScreen(
     ) {
         Image(
             painter = painterResource(id = R.drawable.tomatito_registro),
-            contentDescription = "Ilustración de registro con tomate", // ✅ Punto 2
+            contentDescription = "Ilustración de registro con tomate",
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
@@ -178,7 +178,6 @@ fun SignUpScreen(
 
         Button(
             onClick = {
-                // ✅ Validaciones con trim directo
                 userError = username.trim().isBlank()
                 fullNameError = fullName.trim().isBlank()
                 emailError = email.trim().isBlank() ||
