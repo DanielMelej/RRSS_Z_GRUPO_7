@@ -204,5 +204,6 @@ fun SignUpScreen(
         Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
             Text("Volver al inicio")
         }
+
     }
 }
