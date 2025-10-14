@@ -1,11 +1,24 @@
 package com.example.myapplication.ui.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -17,19 +30,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.R
-import com.example.myapplication.navigation.Screen
-import com.example.myapplication.viewmodel.MainViewModel
+import com.example.myapplication.viewmodel.UsuarioViewModel
 
 @Composable
 fun LogInScreen(
     navController: NavController,
-    viewModel: MainViewModel
+    usuarioViewModel: UsuarioViewModel
 ) {
-    var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var userError by rememberSaveable { mutableStateOf(false) }
-    var passError by rememberSaveable { mutableStateOf(false) }
-    var passVisible by rememberSaveable { mutableStateOf(false) }
+    val estado by usuarioViewModel.estado.collectAsState()
+    val (passVisible, setPassVisible) = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -50,21 +59,21 @@ fun LogInScreen(
 
         Spacer(Modifier.height(8.dp))
         Text("Inicio de Sesión", style = MaterialTheme.typography.titleLarge)
-
         Spacer(Modifier.height(24.dp))
 
         // Usuario
         OutlinedTextField(
-            value = username,
-            onValueChange = {
-                username = it
-                if (userError && it.isNotBlank()) userError = false
-            },
+            value = estado.userName,
+            onValueChange = usuarioViewModel::onUserNameChange,
             label = { Text("Nombre de usuario") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            isError = userError,
-            supportingText = { if (userError) Text("Ingresa tu nombre de usuario") },
+            isError = estado.errores.userName != null,
+            supportingText = {
+                estado.errores.userName?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+            },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
@@ -75,20 +84,22 @@ fun LogInScreen(
 
         // Contraseña
         OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                if (passError && it.isNotBlank()) passError = false
-            },
+            value = estado.password,
+            onValueChange = usuarioViewModel::onPasswordChange,
             label = { Text("Contraseña") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
-            isError = passError,
-            supportingText = { if (passError) Text("Ingresa tu contraseña") },
+            isError = estado.errores.password != null,
+            supportingText = {
+                estado.errores.password?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+            },
             visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val texto = if (passVisible) "Ocultar" else "Mostrar"
-                TextButton(onClick = { passVisible = !passVisible }) { Text(texto) }
+                TextButton(onClick = { setPassVisible(!passVisible) }) {
+                    Text(if (passVisible) "Ocultar" else "Mostrar")
+                }
             },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done,
@@ -98,19 +109,18 @@ fun LogInScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Botón de continuar
+        // Continuar
         Button(
             onClick = {
-                // ✅ Validación mínima corregida
-                userError = username.trim().isBlank()
-                passError = password.isBlank()
-
-                if (!userError && !passError) {
-                    // Navegación de prueba: vuelve a Home
-                    viewModel.navigateTo(Screen.Home)
+                if (usuarioViewModel.validarLogin()) {
+                    // Navega a tu pantalla de inicio (ajusta la ruta si usas otra)
+                    navController.navigate("profile") {
+                        popUpTo("profile") { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             },
-            enabled = username.trim().isNotBlank() && password.isNotBlank(),
+            enabled = estado.userName.trim().isNotEmpty() && estado.password.isNotEmpty(),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Continuar")
@@ -118,7 +128,15 @@ fun LogInScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        Button(onClick = { viewModel.navigateTo(Screen.Home) }) {
+        // Volver a inicio
+        Button(
+            onClick = {
+                navController.navigate("inicio") {
+                    popUpTo("inicio") { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
+        ) {
             Text("Volver al Inicio")
         }
     }

@@ -7,5 +7,3 @@ data class UsuarioErrores (
     val password: String? = null,
     val confirmPassword: String? = null
 )
-
-
