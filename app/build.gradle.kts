@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.ui.graphics)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 
 
     // Test y debug
