@@ -39,12 +39,12 @@ class MainActivity : ComponentActivity() {
                 val viewModel: MainViewModel = viewModel()
                 val navController = rememberNavController()
 
+                // Escucha eventos de navegación
                 LaunchedEffect(Unit) {
                     viewModel.navigationEvents.collectLatest { event ->
                         when (event) {
                             is NavigationEvent.NavigateTo -> {
                                 navController.navigate(event.route.route) {
-                                    // Controlar el comportamiento de la pila
                                     event.popUpToRoute?.let {
                                         popUpTo(it.route) {
                                             inclusive = event.inclusive
@@ -66,22 +66,37 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.Home.route, // Pantalla inicial
+                        startDestination = Screen.Home.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
+
+                        // HOME
                         composable(Screen.Home.route) {
-                            HomeScreen(navController = navController, viewModel = viewModel)
+                            HomeScreen(
+                                navController = navController,
+                                viewModel = viewModel
+                            )
                         }
 
+                        // SETTINGS
                         composable(Screen.Settings.route) {
-                            SettingsScreen(navController = navController, viewModel = viewModel)
-                        }
-                        composable(route = Screen.Login.route) {
-                            val usuarioViewModel: UsuarioViewModel = viewModel()
-                            LoginScreen(navController = navController, usuarioViewModel = usuarioViewModel)
+                            SettingsScreen(
+                                navController = navController,
+                                viewModel = viewModel
+                            )
                         }
 
-                        composable(route = Screen.Registro.route) {
+                        // LOGIN
+                        composable(Screen.Login.route) {
+                            val usuarioViewModel: UsuarioViewModel = viewModel()
+                            LoginScreen(
+                                navController = navController,
+                                usuarioViewModel = usuarioViewModel
+                            )
+                        }
+
+                        // REGISTRO
+                        composable(Screen.Registro.route) {
                             val usuarioViewModel: UsuarioViewModel = viewModel()
                             RegistroScreen(
                                 navController = navController,
@@ -89,13 +104,27 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // MAIN PRINCIPAL
                         composable(Screen.MainPrincipal.route) {
                             val usuarioViewModel: UsuarioViewModel = viewModel()
-                            MainScreen(navController = navController, usuarioViewModel = usuarioViewModel)
+                            MainScreen(
+                                navController = navController,
+                                usuarioViewModel = usuarioViewModel
+                            )
                         }
 
+                        // POSTS
                         composable(Screen.Posts.route) {
                             PostsScreen()
+                        }
+
+                        // ---------------------------------------------------
+                        // PERFIL (ya integrado para navegación desde BottomBar)
+                        // ---------------------------------------------------
+                        composable(Screen.Profile.route) {
+                            ProfileScreen(
+                                navController = navController
+                            )
                         }
                     }
                 }
