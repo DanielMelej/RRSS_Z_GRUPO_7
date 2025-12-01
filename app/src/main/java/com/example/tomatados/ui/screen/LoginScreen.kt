@@ -19,7 +19,6 @@ import com.example.tomatados.R
 import com.example.tomatados.navigation.Screen
 import com.example.tomatados.ui.components.AnimatedEntry
 import com.example.tomatados.viewmodel.UsuarioViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -29,7 +28,6 @@ fun LoginScreen(
 ) {
     val estado by usuarioViewModel.estado.collectAsState()
     val (passVisible, setPassVisible) = remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
     var mensajeError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
@@ -57,7 +55,7 @@ fun LoginScreen(
             Text("Inicio de Sesión", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(24.dp))
 
-            // Campo: Nombre de usuario
+            // Campo: Nombre de usuario o correo
             OutlinedTextField(
                 value = estado.userName,
                 onValueChange = usuarioViewModel::onUserNameChange,
@@ -73,7 +71,8 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Text
-                )
+                ),
+                enabled = !estado.isLoading
             )
 
             Spacer(Modifier.height(16.dp))
@@ -103,45 +102,42 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(
                     imeAction = ImeAction.Done,
                     keyboardType = KeyboardType.Password
-                )
+                ),
+                enabled = !estado.isLoading
             )
 
             Spacer(Modifier.height(16.dp))
 
-            // Botón de inicio de sesión con indicador de carga
+            // Botón de inicio de sesión
             Button(
                 onClick = {
                     if (usuarioViewModel.validarLogin()) {
-                        isLoading = true
                         mensajeError = null
 
                         scope.launch {
                             val inicioCorrecto = usuarioViewModel.iniciarSesion()
 
-                            delay(800)
-                            isLoading = false
-
                             if (inicioCorrecto) {
                                 // Navegación al MainScreen
                                 navController.navigate(Screen.MainPrincipal.route) {
-                                    popUpTo(Screen.MainPrincipal.route) { inclusive = false }
+                                    popUpTo(Screen.Home.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             } else {
-                                mensajeError = "Usuario no encontrado. Regístrate primero."
+                                mensajeError = "Credenciales incorrectas. Verifica tus datos."
                             }
                         }
                     }
                 },
                 enabled = estado.userName.trim().isNotEmpty() &&
                         estado.password.isNotEmpty() &&
-                        !isLoading,
+                        !estado.isLoading,
                 modifier = Modifier
                     .width(220.dp)
                     .height(50.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                if (isLoading) {
+                if (estado.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier
                             .size(22.dp)
@@ -155,7 +151,7 @@ fun LoginScreen(
                 }
             }
 
-            // Mensaje de error (solo visible si algo falla)
+            // Mensaje de error
             mensajeError?.let {
                 Spacer(Modifier.height(12.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
@@ -164,7 +160,10 @@ fun LoginScreen(
             Spacer(Modifier.height(8.dp))
 
             // Botón para volver al inicio
-            TextButton(onClick = { navController.navigate(Screen.Home.route) }) {
+            TextButton(
+                onClick = { navController.navigate(Screen.Home.route) },
+                enabled = !estado.isLoading
+            ) {
                 Text("Volver al Inicio")
             }
         }

@@ -3,42 +3,69 @@ package com.example.tomatados.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tomatados.data.repository.UsuarioRepository
 import com.example.tomatados.model.Usuario
 import com.example.tomatados.model.UsuarioErrores
 import com.example.tomatados.model.UsuarioUiState
 import com.example.tomatados.repository.UserPreferencesRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
+class UsuarioViewModel : AndroidViewModel {
 
-    private val repository = UserPreferencesRepository(application)
+    // Repositorios (inicializados en constructor real o constructor para testing)
+    lateinit var apiRepository: UsuarioRepository
+    lateinit var prefsRepository: UserPreferencesRepository
 
+    // Constructor PRINCIPAL (APP REAL)
+    constructor(application: Application) : super(application) {
+        apiRepository = UsuarioRepository()
+        prefsRepository = UserPreferencesRepository(application)
+        iniciarObservacionPrefs()
+    }
+
+    // Constructor SECUNDARIO (UNIT TESTS)
+    constructor(
+        mockRepo: UsuarioRepository,
+        mockPrefs: UserPreferencesRepository
+    ) : super(Application()) {
+        apiRepository = mockRepo
+        prefsRepository = mockPrefs
+        iniciarObservacionPrefs()
+    }
+
+    // State
     private val _estado = MutableStateFlow(UsuarioUiState())
-    val estado: StateFlow<UsuarioUiState> = _estado.asStateFlow()
+    val estado: StateFlow<UsuarioUiState> = _estado
 
     private val _usuarioActivo = MutableStateFlow<Usuario?>(null)
-    val usuarioActivo: StateFlow<Usuario?> = _usuarioActivo.asStateFlow()
+    val usuarioActivo: StateFlow<Usuario?> = _usuarioActivo
 
-    init {
-        // Al iniciar, intentamos recuperar el usuario persistido desde DataStore
+    // Observa DataStore en ambos constructores
+    private fun iniciarObservacionPrefs() {
         viewModelScope.launch {
-            repository.userData.collect { data ->
+            prefsRepository.userData.collect { data ->
                 val userName = data["username"] ?: ""
                 val fullName = data["fullname"] ?: ""
                 val email = data["email"] ?: ""
-                val password = data["password"] ?: ""
+                val token = data["token"] ?: ""
 
-                if (userName.isNotEmpty()) {
-                    _usuarioActivo.value = Usuario(userName, fullName, email, password)
+                if (userName.isNotEmpty() && token.isNotEmpty()) {
 
-                    // También actualizamos el estado visible (por ejemplo en MainScreen)
+                    _usuarioActivo.value = Usuario(
+                        userName = userName,
+                        fullName = fullName,
+                        email = email,
+                        token = token
+                    )
+
                     _estado.update {
                         it.copy(
                             userName = userName,
-                            fullName = fullName,
                             email = email,
-                            password = password
+                            token = token
                         )
                     }
                 }
@@ -46,114 +73,156 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // --- Actualizaciones de campos de texto ---
-    fun onUserNameChange(v: String) { _estado.update { it.copy(userName = v, errores = it.errores.copy(userName = null)) } }
-    fun onFullNameChange(v: String) { _estado.update { it.copy(fullName = v, errores = it.errores.copy(fullName = null)) } }
-    fun onEmailChange(v: String) { _estado.update { it.copy(email = v, errores = it.errores.copy(email = null)) } }
-    fun onPasswordChange(v: String) { _estado.update { it.copy(password = v, errores = it.errores.copy(password = null)) } }
-    fun onConfirmPasswordChange(v: String) { _estado.update { it.copy(confirmPassword = v, errores = it.errores.copy(confirmPassword = null)) } }
+    // ======================================
+    // ACTUALIZACIÓN DE CAMPOS
+    // ======================================
+    fun onUserNameChange(v: String) {
+        _estado.update { it.copy(userName = v, errores = it.errores.copy(userName = null)) }
+    }
 
-    // --- Validaciones ---
+    fun onPrimerNombreChange(v: String) {
+        _estado.update { it.copy(primerNombre = v, errores = it.errores.copy(primerNombre = null)) }
+    }
+
+    fun onSegundoNombreChange(v: String) {
+        _estado.update { it.copy(segundoNombre = v) }
+    }
+
+    fun onPrimerApellidoChange(v: String) {
+        _estado.update { it.copy(primerApellido = v, errores = it.errores.copy(primerApellido = null)) }
+    }
+
+    fun onSegundoApellidoChange(v: String) {
+        _estado.update { it.copy(segundoApellido = v, errores = it.errores.copy(segundoApellido = null)) }
+    }
+
+    fun onEmailChange(v: String) {
+        _estado.update { it.copy(email = v, errores = it.errores.copy(email = null)) }
+    }
+
+    fun onPasswordChange(v: String) {
+        _estado.update { it.copy(password = v, errores = it.errores.copy(password = null)) }
+    }
+
+    fun onConfirmPasswordChange(v: String) {
+        _estado.update { it.copy(confirmPassword = v, errores = it.errores.copy(confirmPassword = null)) }
+    }
+
+    // ======================================
+    // VALIDACIÓN REGISTRO
+    // ======================================
     fun validarFormulario(): Boolean {
-        val e = _estado.value
+        val e = estado.value
+
+        val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+
         val errores = UsuarioErrores(
             userName = if (e.userName.isBlank()) "Campo obligatorio" else null,
-            fullName = if (e.fullName.isBlank()) "Campo obligatorio" else null,
-            email = if (!e.email.contains("@")) "Correo inválido" else null,
+            primerNombre = if (e.primerNombre.isBlank()) "Campo obligatorio" else null,
+            primerApellido = if (e.primerApellido.isBlank()) "Campo obligatorio" else null,
+            segundoApellido = if (e.segundoApellido.isBlank()) "Campo obligatorio" else null,
+            email =
+                if (e.email.isBlank()) "Campo obligatorio"
+                else if (!emailRegex.matches(e.email)) "Correo inválido"
+                else null,
             password = if (e.password.length < 6) "Mínimo 6 caracteres" else null,
-            confirmPassword = if (e.confirmPassword != e.password) "No coinciden" else null
+            confirmPassword = if (e.confirmPassword != e.password) "Las contraseñas no coinciden" else null
         )
+
         _estado.update { it.copy(errores = errores) }
-        return listOfNotNull(
-            errores.userName, errores.fullName, errores.email, errores.password, errores.confirmPassword
-        ).isEmpty()
+
+        return errores.userName == null &&
+                errores.primerNombre == null &&
+                errores.primerApellido == null &&
+                errores.segundoApellido == null &&
+                errores.email == null &&
+                errores.password == null &&
+                errores.confirmPassword == null
     }
 
+    // ======================================
+    // VALIDAR LOGIN
+    // ======================================
     fun validarLogin(): Boolean {
-        val s = _estado.value
+        val e = estado.value
+
         val errs = UsuarioErrores(
-            userName = if (s.userName.trim().isEmpty()) "Campo obligatorio" else null,
-            password = if (s.password.isEmpty()) "Ingresa tu contraseña" else null
+            userName = if (e.userName.isBlank()) "Campo obligatorio" else null,
+            password = if (e.password.isBlank()) "Ingresa tu contraseña" else null
         )
 
-        val hayErrores = listOfNotNull(errs.userName, errs.password).isNotEmpty()
+        _estado.update { it.copy(errores = errs) }
 
-        _estado.update {
-            it.copy(
-                errores = it.errores.copy(
-                    userName = errs.userName,
-                    password = errs.password
-                )
-            )
-        }
-
-        return !hayErrores
+        return errs.userName == null && errs.password == null
     }
 
-    // --- Registro ---
-    fun registrarUsuario(): Boolean {
-        val e = _estado.value
+    // ======================================
+    // REGISTRO API
+    // ======================================
+    suspend fun registrarUsuario(): Boolean {
         if (!validarFormulario()) return false
 
-        viewModelScope.launch {
-            repository.saveUser(e.userName, e.fullName, e.email, e.password)
-            println("✅ Usuario guardado en DataStore: ${e.userName}, ${e.fullName}, ${e.email}, ${e.password}")
-        }
+        _estado.update { it.copy(isLoading = true) }
 
-        _usuarioActivo.value = Usuario(e.userName, e.fullName, e.email, e.password)
-        return true
+        val e = estado.value
+        val resultado = apiRepository.registrarUsuario(
+            e.userName, e.primerNombre, e.segundoNombre,
+            e.primerApellido, e.segundoApellido,
+            e.email, e.password
+        )
+
+        _estado.update { it.copy(isLoading = false) }
+
+        return resultado.isSuccess
     }
 
-    // --- Inicio de sesión ---
+    // ======================================
+    // LOGIN API
+    // ======================================
     suspend fun iniciarSesion(): Boolean {
-        val e = _estado.value
-        val data = repository.userData.first() // obtiene los datos actuales del DataStore
+        if (!validarLogin()) return false
 
-        val storedUser = data["username"] ?: ""
-        val storedEmail = data["email"] ?: ""
-        val storedPassword = data["password"] ?: ""
+        _estado.update { it.copy(isLoading = true) }
 
-        println("📦 DataStore contiene: $data")
+        val e = estado.value
+        val resultado = apiRepository.login(e.userName, e.password)
 
-        return if ((e.userName == storedUser || e.userName == storedEmail) &&
-            e.password == storedPassword
-        ) {
-            _usuarioActivo.value = Usuario(
-                storedUser,
-                data["fullname"] ?: "",
-                storedEmail,
-                storedPassword
-            )
-            true
-        } else {
-            false
-        }
-    }
+        _estado.update { it.copy(isLoading = false) }
 
-    // --- Cargar datos del usuario actual ---
-    fun cargarUsuario() {
-        viewModelScope.launch {
-            repository.userData.collect { data ->
-                val userName = data["username"] ?: ""
-                val fullName = data["fullname"] ?: ""
-                val email = data["email"] ?: ""
-
-                if (userName.isNotEmpty()) {
-                    _estado.update {
-                        it.copy(
-                            userName = userName,
-                            fullName = fullName,
-                            email = email
-                        )
-                    }
+        return resultado.fold(
+            onSuccess = { login ->
+                viewModelScope.launch {
+                    prefsRepository.saveUser(
+                        login.userName, login.fullName, login.email, login.token
+                    )
                 }
+
+                _usuarioActivo.value = Usuario(
+                    userName = login.userName,
+                    fullName = login.fullName,
+                    email = login.email,
+                    token = login.token
+                )
+
+                true
+            },
+            onFailure = {
+                _estado.update {
+                    it.copy(errores = it.errores.copy(password = "Credenciales incorrectas"))
+                }
+                false
             }
-        }
+        )
     }
 
-    // --- Cerrar sesión ---
+    // ======================================
+    // CERRAR SESIÓN
+    // ======================================
     fun cerrarSesion() {
-        viewModelScope.launch { repository.clearUser() }
-        _usuarioActivo.value = null
+        viewModelScope.launch {
+            prefsRepository.clearUser()
+            _usuarioActivo.value = null
+            _estado.value = UsuarioUiState()
+        }
     }
 }

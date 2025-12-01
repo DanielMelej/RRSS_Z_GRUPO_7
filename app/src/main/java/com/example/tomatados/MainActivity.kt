@@ -20,6 +20,7 @@ import com.example.tomatados.navigation.Screen
 import com.example.tomatados.ui.screen.HomeScreen
 import com.example.tomatados.ui.screen.LoginScreen
 import com.example.tomatados.ui.screen.MainScreen
+import com.example.tomatados.ui.screen.PostsScreen
 import com.example.tomatados.ui.screen.ProfileScreen
 import com.example.tomatados.ui.theme.TomatadosTheme
 import com.example.tomatados.viewmodel.MainViewModel
@@ -71,9 +72,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Home.route) {
                             HomeScreen(navController = navController, viewModel = viewModel)
                         }
-                        composable(Screen.Profile.route) {
-                            ProfileScreen(navController = navController, viewModel = viewModel)
-                        }
+
                         composable(Screen.Settings.route) {
                             SettingsScreen(navController = navController, viewModel = viewModel)
                         }
@@ -93,6 +92,10 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.MainPrincipal.route) {
                             val usuarioViewModel: UsuarioViewModel = viewModel()
                             MainScreen(navController = navController, usuarioViewModel = usuarioViewModel)
+                        }
+
+                        composable(Screen.Posts.route) {
+                            PostsScreen()
                         }
                     }
                 }

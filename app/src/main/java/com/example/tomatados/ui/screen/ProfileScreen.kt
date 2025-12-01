@@ -1,70 +1,76 @@
 package com.example.tomatados.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.example.tomatados.navigation.Screen
-import com.example.tomatados.viewmodel.MainViewModel
+import com.example.tomatados.ui.components.ImagenInteligente
+import com.example.tomatados.viewmodel.ProfileViewModel
+import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun ProfileScreen(
-    navController: NavController,
-    viewModel: MainViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel()
 ) {
-    val items = listOf(Screen.Home, Screen.Profile)
-    var selectedItem by remember { mutableStateOf(value = 1) }
+    val context = LocalContext.current
+    val imageUri by viewModel.imageUri.collectAsState()
 
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                items.forEachIndexed { index, screen ->
-                    NavigationBarItem(
-                        selected = selectedItem == index,
-                        onClick = {
-                            selectedItem = index
-                            viewModel.navigateTo(screen)
-                        },
-                        label = { Text(text = screen.route) },
-                        icon = {
-                            Icon(
-                                imageVector = if (screen == Screen.Home) Icons.Default.Home else Icons.Default.Person,
-                                contentDescription = screen.route
-                            )
-                        }
-                    )
-                }
-            }
+    // URI temporal para la cámara
+    var tempUri: Uri? by remember { mutableStateOf(null) }
+
+    // Launcher para galería
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        viewModel.setImage(uri)
+    }
+
+    // Launcher para cámara
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            viewModel.setImage(tempUri)
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = "¡Bienvenido al Perfil!")
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ImagenInteligente(imageUri)
+
+        Spacer(Modifier.height(20.dp))
+
+        Button(onClick = {
+            galleryLauncher.launch("image/*")
+        }) {
+            Text("Seleccionar desde galería")
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Button(onClick = {
+            tempUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                File(context.cacheDir, "foto_perfil.jpg")
+            )
+            cameraLauncher.launch(tempUri!!)
+        }) {
+            Text("Tomar foto con cámara")
         }
     }
 }

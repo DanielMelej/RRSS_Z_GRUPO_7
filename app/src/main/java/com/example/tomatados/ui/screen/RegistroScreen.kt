@@ -2,6 +2,8 @@ package com.example.myapplication.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +17,6 @@ import com.example.tomatados.R
 import com.example.tomatados.navigation.Screen
 import com.example.tomatados.ui.components.AnimatedEntry
 import com.example.tomatados.viewmodel.UsuarioViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -24,13 +25,15 @@ fun RegistroScreen(
     viewModel: UsuarioViewModel
 ) {
     val estado by viewModel.estado.collectAsState()
-    var isLoading by remember { mutableStateOf(false) } // controla la animación de carga
-    val scope = rememberCoroutineScope() // permite usar corrutinas dentro de onClick
+    var mensajeExito by remember { mutableStateOf<String?>(null) }
+    var mensajeError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     AnimatedEntry {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -41,14 +44,14 @@ fun RegistroScreen(
                 contentDescription = "Logo de Tomatados",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .height(120.dp),
                 contentScale = ContentScale.Fit
             )
 
             Spacer(Modifier.height(12.dp))
 
             Text("Registro de Usuario", style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
             // Campo: Nombre de usuario
             OutlinedTextField(
@@ -61,22 +64,88 @@ fun RegistroScreen(
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true
             )
 
-            // Campo: Nombre completo
+            Spacer(Modifier.height(8.dp))
+
+            // ✅ CAMPO: Primer Nombre
             OutlinedTextField(
-                value = estado.fullName,
-                onValueChange = viewModel::onFullNameChange,
-                label = { Text("Nombre completo") },
-                isError = estado.errores.fullName != null,
+                value = estado.primerNombre,
+                onValueChange = viewModel::onPrimerNombreChange,
+                label = { Text("Primer Nombre") },
+                isError = estado.errores.primerNombre != null,
                 supportingText = {
-                    estado.errores.fullName?.let {
+                    estado.errores.primerNombre?.let {
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true,
+                placeholder = { Text("Ej: Juan") }
             )
+
+            Spacer(Modifier.height(8.dp))
+
+            // ✅ CAMPO: Segundo Nombre (OPCIONAL)
+            OutlinedTextField(
+                value = estado.segundoNombre,
+                onValueChange = viewModel::onSegundoNombreChange,
+                label = { Text("Segundo Nombre (Opcional)") },
+                isError = estado.errores.segundoNombre != null,
+                supportingText = {
+                    estado.errores.segundoNombre?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true,
+                placeholder = { Text("Ej: Carlos") }
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // ✅ CAMPO: Primer Apellido
+            OutlinedTextField(
+                value = estado.primerApellido,
+                onValueChange = viewModel::onPrimerApellidoChange,
+                label = { Text("Primer Apellido") },
+                isError = estado.errores.primerApellido != null,
+                supportingText = {
+                    estado.errores.primerApellido?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true,
+                placeholder = { Text("Ej: Pérez") }
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // ✅ CAMPO: Segundo Apellido
+            OutlinedTextField(
+                value = estado.segundoApellido,
+                onValueChange = viewModel::onSegundoApellidoChange,
+                label = { Text("Segundo Apellido") },
+                isError = estado.errores.segundoApellido != null,
+                supportingText = {
+                    estado.errores.segundoApellido?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true,
+                placeholder = { Text("Ej: González") }
+            )
+
+            Spacer(Modifier.height(8.dp))
 
             // Campo: Correo electrónico
             OutlinedTextField(
@@ -89,8 +158,12 @@ fun RegistroScreen(
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true
             )
+
+            Spacer(Modifier.height(8.dp))
 
             // Campo: Contraseña
             OutlinedTextField(
@@ -104,8 +177,12 @@ fun RegistroScreen(
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true
             )
+
+            Spacer(Modifier.height(8.dp))
 
             // Campo: Confirmar contraseña
             OutlinedTextField(
@@ -119,45 +196,49 @@ fun RegistroScreen(
                         Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !estado.isLoading,
+                singleLine = true
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            // Botón Registrar con indicador de carga
+            // Botón Registrar
             Button(
                 onClick = {
-                    if (viewModel.validarFormulario()) {
-                        isLoading = true
-                        scope.launch {
-                            // ✅ Registrar el usuario en DataStore
-                            val registrado = viewModel.registrarUsuario()
+                    mensajeExito = null
+                    mensajeError = null
 
-                            delay(1000)
-                            isLoading = false
+                    scope.launch {
+                        val registrado = viewModel.registrarUsuario()
 
-                            if (registrado) {
-                                // ✅ Luego de guardar, ir al login
-                                navController.navigate(Screen.Login.route) {
-                                    popUpTo(Screen.Login.route) { inclusive = true }
-                                }
+                        if (registrado) {
+                            mensajeExito = "¡Registro exitoso! Redirigiendo al login..."
+                            kotlinx.coroutines.delay(1500)
+
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Home.route) { inclusive = false }
+                                launchSingleTop = true
                             }
+                        } else {
+                            mensajeError = "Error en el registro. Verifica los datos."
                         }
                     }
                 },
-                enabled = !isLoading,
+                enabled = !estado.isLoading,
                 modifier = Modifier
                     .width(220.dp)
                     .height(50.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                if (isLoading) {
+                if (estado.isLoading) {
                     CircularProgressIndicator(
                         color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(22.dp)
                     )
-                    Text("Cargando...")
+                    Spacer(Modifier.width(8.dp))
+                    Text("Registrando...")
                 } else {
                     Text("Continuar")
                 }
@@ -165,10 +246,30 @@ fun RegistroScreen(
 
             Spacer(Modifier.height(12.dp))
 
+            // Mensaje de éxito
+            mensajeExito?.let {
+                Text(
+                    it,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Mensaje de error
+            mensajeError?.let {
+                Text(
+                    it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
             // Botón Volver al inicio
             TextButton(
                 onClick = { navController.navigate(Screen.Home.route) },
-                enabled = !isLoading
+                enabled = !estado.isLoading
             ) {
                 Text("Volver al Inicio")
             }

@@ -16,21 +16,21 @@ class UserPreferencesRepository(private val context: Context) {
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val FULLNAME_KEY = stringPreferencesKey("fullname")
         private val EMAIL_KEY = stringPreferencesKey("email")
-        private val PASSWORD_KEY = stringPreferencesKey("password") // 🔒 ahora se guarda también
+        private val TOKEN_KEY = stringPreferencesKey("token") // 🆕 Agregar token
     }
 
-    // 🔹 Guarda todos los datos del usuario (incluyendo la contraseña)
+    // 🔹 Guarda todos los datos del usuario (incluyendo el token)
     suspend fun saveUser(
         userName: String,
         fullName: String,
         email: String,
-        password: String
+        token: String
     ) {
         context.dataStore.edit { prefs ->
             prefs[USERNAME_KEY] = userName
             prefs[FULLNAME_KEY] = fullName
             prefs[EMAIL_KEY] = email
-            prefs[PASSWORD_KEY] = password
+            prefs[TOKEN_KEY] = token
         }
     }
 
@@ -40,8 +40,13 @@ class UserPreferencesRepository(private val context: Context) {
             "username" to (prefs[USERNAME_KEY] ?: ""),
             "fullname" to (prefs[FULLNAME_KEY] ?: ""),
             "email" to (prefs[EMAIL_KEY] ?: ""),
-            "password" to (prefs[PASSWORD_KEY] ?: "")
+            "token" to (prefs[TOKEN_KEY] ?: "")
         )
+    }
+
+    // 🔹 Obtiene solo el token
+    val token: Flow<String?> = context.dataStore.data.map { prefs ->
+        prefs[TOKEN_KEY]
     }
 
     // 🔹 Limpia todos los datos del usuario (cerrar sesión)
